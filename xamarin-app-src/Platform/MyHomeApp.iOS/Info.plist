@@ -34,5 +34,11 @@
 	<string>MyHomeApp</string>
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/AppIcon.appiconset</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>To monitor your proximity to your home.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>To monitor your proximity to your home.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>To monitor your proximity to your home.</string>
 </dict>
 </plist>
