@@ -15,6 +15,8 @@ namespace MyHomeApp.PageModels
         public string BeaconUuid { get; set; }
         public string BeaconMajor { get; set; }
         public string BeaconMinor { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
 
         public SetupPageModel()
         {
@@ -25,7 +27,7 @@ namespace MyHomeApp.PageModels
         {
             get => new Command(async () =>
             {
-                if (Settings.SettingsSet())
+                if (string.IsNullOrWhiteSpace(DeviceId) || string.IsNullOrWhiteSpace(AccessToken))
                 {
                     await UserDialogs.Instance.AlertAsync("Device ID and Access Token are required.");
                 }
@@ -33,10 +35,13 @@ namespace MyHomeApp.PageModels
                 {
                     Settings.DeviceId = DeviceId;
                     Settings.AccessToken = AccessToken;
-                    Settings.BeaconUuid = BeaconUuid;
-                    Settings.BeaconMajor = BeaconMajor;
-                    Settings.BeaconMinor = BeaconMinor;
+                    //Settings.BeaconUuid = BeaconUuid;
+                    //Settings.BeaconMajor = BeaconMajor;
+                    //Settings.BeaconMinor = BeaconMinor;
+                    Settings.Latitude = Latitude;
+                    Settings.Longitude = Longitude;
 
+                    MessagingCenter.Send<string>("", "StartMonitoringHome");
                     Application.Current.MainPage = ((App)Application.Current).BuildMainPage();
                 }
             });

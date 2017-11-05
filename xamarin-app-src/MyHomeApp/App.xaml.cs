@@ -10,7 +10,9 @@ namespace MyHomeApp
         {
             InitializeComponent();
 
-            MainPage = Settings.SettingsSet() ? BuildMainPage() : BuildSetupPage();
+            MainPage = Settings.SettingsSet() 
+                               ? BuildMainPage() 
+                               : BuildSetupPage();
         }
 
         public Page BuildSetupPage()
@@ -36,7 +38,7 @@ namespace MyHomeApp
 
         protected override void OnResume()
         {
-            if (!string.IsNullOrWhiteSpace(Settings.DeviceId) && !string.IsNullOrWhiteSpace(Settings.AccessToken))
+            if (Settings.SettingsSet())
             {
                 MessagingCenter.Send<string>("", "PerformSync");
             }

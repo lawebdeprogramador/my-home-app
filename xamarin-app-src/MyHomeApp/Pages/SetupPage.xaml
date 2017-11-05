@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <local:BasePage 
     xmlns="http://xamarin.com/schemas/2014/forms" 
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
@@ -14,8 +14,8 @@
     <local:BasePage.Content>
         <StackLayout>
             <StackLayout VerticalOptions="Fill" HorizontalOptions="Fill" Padding="16,20,16,0" BackgroundColor="#efeff4">
-                <Label Text="Welcome to MyHomeApp!" StyleClass="Header" HorizontalOptions="Center" TextColor="Black" />
-                <Label Text="MyHomeApp allows you to control your Spark Core or Particle IoT device." FontSize="16" TextColor="Black" />
+                <Label Text="Welcome to MyHomeApp!" HorizontalOptions="Center" TextColor="Black" FontAttributes="Bold" />
+                <Label Text="MyHomeApp allows you to control your Spark Core or Particle IoT device." FontSize="16" TextColor="Black" Margin="0,20,0,0" />
             </StackLayout>
 
             <TableView Intent="Settings">
@@ -29,10 +29,14 @@
                         <EntryCell Text="{Binding BeaconMajor}" Label="Major" Placeholder="Major" HorizontalTextAlignment="End" LabelColor="Black" />
                         <EntryCell Text="{Binding BeaconMinor}" Label="Minor" Placeholder="Minor" HorizontalTextAlignment="End" LabelColor="Black" />
                     </TableSection>-->
+                    <TableSection Title="Home Location (optional)">
+                        <EntryCell Text="{Binding Latitude}" Label="Latitude" Placeholder="-0" HorizontalTextAlignment="End" LabelColor="Black" />
+                        <EntryCell Text="{Binding Longitude}" Label="Longitude" Placeholder="0" HorizontalTextAlignment="End" LabelColor="Black" />
+                    </TableSection>
                     <TableSection>
                         <ViewCell>
                             <StackLayout>
-                                <Button Text="Save" StyleClass="Success" Command="{Binding SaveCommand}" />
+                                <Button Text="Save" Command="{Binding SaveCommand}" />
                             </StackLayout>
                         </ViewCell>
                     </TableSection>

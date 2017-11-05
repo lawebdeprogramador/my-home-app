@@ -16,6 +16,7 @@ namespace MyHomeApp.Pages
             ToolbarItems.Add(new ToolbarItem("Logout", "", async () => {
                 if (await UserDialogs.Instance.ConfirmAsync("Really log out?"))
                 {
+                    MessagingCenter.Send<string>("", "StopMonitoringHome");
                     Settings.ClearSettings();
                     Application.Current.MainPage = ((App)Application.Current).BuildSetupPage();
                 }

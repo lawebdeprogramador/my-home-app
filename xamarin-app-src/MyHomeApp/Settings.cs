@@ -43,9 +43,31 @@ namespace MyHomeApp
             set => AppSettings.AddOrUpdateValue(nameof(BeaconMinor), value);
         }
 
+        public static double Latitude
+        {
+            get => AppSettings.GetValueOrDefault(nameof(BeaconMinor), default(double));
+            set => AppSettings.AddOrUpdateValue(nameof(BeaconMinor), value);
+        }
+
+        public static double Longitude
+        {
+            get => AppSettings.GetValueOrDefault(nameof(BeaconMinor), default(double));
+            set => AppSettings.AddOrUpdateValue(nameof(BeaconMinor), value);
+        }
+
         public static bool SettingsSet()
         {
             return DeviceId != default(string) && AccessToken != default(string);
+        }
+
+        public static bool BeaconSet()
+        {
+            return BeaconUuid != default(string) && BeaconMajor != default(string) && BeaconMinor != default(string);
+        }
+
+        public static bool GeographicRegionSet()
+        {
+            return Latitude > 0 && Longitude > 0;
         }
 
         public static void ClearSettings()
