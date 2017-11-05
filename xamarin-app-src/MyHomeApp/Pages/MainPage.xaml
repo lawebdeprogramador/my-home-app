@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<local:BasePage 
+    xmlns="http://xamarin.com/schemas/2014/forms" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+    x:Class="MyHomeApp.Pages.MainPage"
+    xmlns:local="clr-namespace:MyHomeApp.Pages;assembly=MyHomeApp"
+    BackgroundColor="#efeff4"
+    Title="My Home">
+    <local:BasePage.Content>
+        <StackLayout>
+            <TableView Intent="Settings">
+                <TableRoot>
+                    <TableSection Title="Front Garden Lights">
+                        <SwitchCell Text="Lights on at sunset active?" On="{Binding SunsetModeActive}" IsEnabled="{Binding SunsetModeActiveToggleEnabled}" OnChanged="Handle_SunsetModeToggle"/>
+                        <SwitchCell Text="Toggle lights" On="{Binding AreFrontGardenLightsOn}" IsEnabled="{Binding FrontGardenLightsToggleEnabled}" OnChanged="Handle_FrontGardenLightsToggle" />
+                        <TextCell Text="Sunset lights off at?" Detail="{Binding SunsetLightsOffAt}" />
+                    </TableSection>
+                    <TableSection Title="Garage Door">
+                        <SwitchCell Text="{Binding GarageDoorStatusText}" IsEnabled="false" On="{Binding GarageDoorOpen}" />
+                        <SwitchCell Text="Toggle garage door button" On="{Binding GarageDoorButton}" OnChanged="Handle_GarageDoorButton" />
+                    </TableSection>
+                </TableRoot>
+            </TableView>
+        </StackLayout>
+    </local:BasePage.Content>
+</local:BasePage>

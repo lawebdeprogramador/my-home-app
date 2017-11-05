@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<local:BasePage 
+    xmlns="http://xamarin.com/schemas/2014/forms" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+    x:Class="MyHomeApp.Pages.SetupPage"
+    xmlns:local="clr-namespace:MyHomeApp.Pages;assembly=MyHomeApp"
+    BackgroundColor="#efeff4">
+    <local:BasePage.Padding>
+        <OnPlatform x:TypeArguments="Thickness">
+            <On Platform="Android, WinPhone">0</On>
+            <On Platform="iOS">0,20,0,0</On>
+        </OnPlatform>
+    </local:BasePage.Padding>
+    <local:BasePage.Content>
+        <StackLayout>
+            <StackLayout VerticalOptions="Fill" HorizontalOptions="Fill" Padding="16,20,16,0" BackgroundColor="#efeff4">
+                <Label Text="Welcome to MyHomeApp!" StyleClass="Header" HorizontalOptions="Center" TextColor="Black" />
+                <Label Text="MyHomeApp allows you to control your Spark Core or Particle IoT device." FontSize="16" TextColor="Black" />
+            </StackLayout>
+
+            <TableView Intent="Settings">
+                <TableRoot>
+                    <TableSection Title="IoT device details">
+                        <EntryCell Text="{Binding DeviceId}" Label="Device ID" Placeholder="Particle Device ID" HorizontalTextAlignment="End" LabelColor="Black" />
+                        <EntryCell Text="{Binding AccessToken}" Label="Access Token" Placeholder="API Access" HorizontalTextAlignment="End" LabelColor="Black" />
+                    </TableSection>
+                    <!--<TableSection Title="Garage Beacon">
+                        <EntryCell Text="{Binding BeaconUuid}" Label="UUID" Placeholder="Beacon GUID" HorizontalTextAlignment="End" LabelColor="Black" />
+                        <EntryCell Text="{Binding BeaconMajor}" Label="Major" Placeholder="Major" HorizontalTextAlignment="End" LabelColor="Black" />
+                        <EntryCell Text="{Binding BeaconMinor}" Label="Minor" Placeholder="Minor" HorizontalTextAlignment="End" LabelColor="Black" />
+                    </TableSection>-->
+                    <TableSection>
+                        <ViewCell>
+                            <StackLayout>
+                                <Button Text="Save" StyleClass="Success" Command="{Binding SaveCommand}" />
+                            </StackLayout>
+                        </ViewCell>
+                    </TableSection>
+                </TableRoot>
+            </TableView>
+        </StackLayout>
+    </local:BasePage.Content>
+</local:BasePage>
