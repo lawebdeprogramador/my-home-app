@@ -224,8 +224,8 @@
     <AndroidResource Include="Resources\values\styles.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MyHomeApp\MyHomeApp.csproj">
-      <Project>{08875ae7-d925-4f76-816e-04cbced74c3b}</Project>
+    <ProjectReference Include="..\..\MyHomeApp\MyHomeApp.csproj">
+      <Project>{08875AE7-D925-4F76-816E-04CBCED74C3B}</Project>
       <Name>MyHomeApp</Name>
     </ProjectReference>
   </ItemGroup>
