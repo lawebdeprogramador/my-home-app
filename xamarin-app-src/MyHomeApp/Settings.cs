@@ -45,14 +45,20 @@ namespace MyHomeApp
 
         public static double Latitude
         {
-            get => AppSettings.GetValueOrDefault(nameof(BeaconMinor), default(double));
-            set => AppSettings.AddOrUpdateValue(nameof(BeaconMinor), value);
+            get => AppSettings.GetValueOrDefault(nameof(Latitude), default(double));
+            set => AppSettings.AddOrUpdateValue(nameof(Latitude), value);
         }
 
         public static double Longitude
         {
-            get => AppSettings.GetValueOrDefault(nameof(BeaconMinor), default(double));
-            set => AppSettings.AddOrUpdateValue(nameof(BeaconMinor), value);
+            get => AppSettings.GetValueOrDefault(nameof(Longitude), default(double));
+            set => AppSettings.AddOrUpdateValue(nameof(Longitude), value);
+        }
+
+        public static bool AlertsAllowed
+        {
+            get => AppSettings.GetValueOrDefault(nameof(AlertsAllowed), true);
+            set => AppSettings.AddOrUpdateValue(nameof(AlertsAllowed), value);
         }
 
         public static bool SettingsSet()
@@ -67,7 +73,7 @@ namespace MyHomeApp
 
         public static bool GeographicRegionSet()
         {
-            return Latitude > 0 && Longitude > 0;
+            return Latitude != default(double) && Longitude != default(double);
         }
 
         public static void ClearSettings()
