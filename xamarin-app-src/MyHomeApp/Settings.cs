@@ -1,6 +1,4 @@
-﻿using Plugin.SecureStorage;
-using Plugin.SecureStorage.Abstractions;
-using Plugin.Settings;
+﻿using Plugin.Settings;
 using Plugin.Settings.Abstractions;
 
 namespace MyHomeApp
@@ -8,8 +6,6 @@ namespace MyHomeApp
     public static class Settings
     {
         private static ISettings AppSettings => CrossSettings.Current;
-
-        private static ISecureStorage AppSecureStorage => CrossSecureStorage.Current;
 
         public static string ParticleUrl { get; } = "https://api.particle.io";
 
@@ -21,8 +17,8 @@ namespace MyHomeApp
 
         public static string AccessToken
         {
-            get => AppSecureStorage.GetValue(nameof(AccessToken), default(string));
-            set => AppSecureStorage.SetValue(nameof(AccessToken), value);
+            get => AppSettings.GetValueOrDefault(nameof(AccessToken), default(string));
+            set => AppSettings.AddOrUpdateValue(nameof(AccessToken), value);
         }
 
         public static string BeaconUuid
@@ -79,7 +75,6 @@ namespace MyHomeApp
         public static void ClearSettings()
         {
             AppSettings.Clear();
-            CrossSecureStorage.Current.DeleteKey(nameof(AccessToken));
         }
     }
 }
