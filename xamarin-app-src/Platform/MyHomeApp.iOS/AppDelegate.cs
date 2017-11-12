@@ -46,9 +46,6 @@ namespace MyHomeApp.iOS
             });
 
             locationManager = new CLLocationManager();
-            //{
-            //    ActivityType = CLActivityType.Other//.AutomotiveNavigation
-            //};
 
             MessagingCenter.Subscribe<string>(this, "StartMonitoringHome", _ => StartMonitoringHome());
             MessagingCenter.Subscribe<string>(this, "StopMonitoringHomee", _ => StopMonitoringHome());
@@ -72,29 +69,24 @@ namespace MyHomeApp.iOS
                 locationManager.RegionEntered += async (s, e) => await OnApprochingHome();
                 locationManager.RegionLeft += async (s, e) => await CheckIfGarageDoorIsOpen();
 
-                locationManager.RegionEntered += (object sender, CLRegionEventArgs e) => {
-                    TriggerNotification(new UNMutableNotificationContent
-                    {
-                        Title = "test",
-                        Body = "RegionEntered",
-                        Sound = UNNotificationSound.Default
-                    });
-                };
-                locationManager.RegionLeft += (sender, e) => {
-                    TriggerNotification(new UNMutableNotificationContent
-                    {
-                        Title = "test",
-                        Body = "RegionLeft",
-                        Sound = UNNotificationSound.Default
-                    });
-                };
+                //locationManager.RegionEntered += (object sender, CLRegionEventArgs e) => {
+                //    TriggerNotification(new UNMutableNotificationContent
+                //    {
+                //        Title = "test",
+                //        Body = "RegionEntered",
+                //        Sound = UNNotificationSound.Default
+                //    });
+                //};
+                //locationManager.RegionLeft += (sender, e) => {
+                //    TriggerNotification(new UNMutableNotificationContent
+                //    {
+                //        Title = "test",
+                //        Body = "RegionLeft",
+                //        Sound = UNNotificationSound.Default
+                //    });
+                //};
 
                 locationManager.RequestAlwaysAuthorization();
-                try
-                {
-                    locationManager.StartMonitoring(HomeRegion());
-                }
-                catch {}
             }
         }
 
@@ -136,16 +128,7 @@ namespace MyHomeApp.iOS
 
                     if (response.Outcome == OutcomeType.Successful)
                     {
-                        if (response.Result.ReturnValue == 0)
-                        {
-                            TriggerNotification(new UNMutableNotificationContent
-                            {
-                                Title = "Approaching Home Alert",
-                                Body = "You approached home, but the front garden lights didn't turn on. They were either already on, or it was not night time.",
-                                Sound = UNNotificationSound.Default
-                            });
-                        }
-                        else
+                        if (response.Result.ReturnValue == 1)
                         {
                             TriggerNotification(new UNMutableNotificationContent
                             {
@@ -154,6 +137,15 @@ namespace MyHomeApp.iOS
                                 Sound = UNNotificationSound.Default
                             });
                         }
+                        //else
+                        //{
+                        //    TriggerNotification(new UNMutableNotificationContent
+                        //    {
+                        //        Title = "Approaching Home Alert",
+                        //        Body = "You approached home, but the front garden lights didn't turn on. They were either already on, or it was not night time.",
+                        //        Sound = UNNotificationSound.Default
+                        //    });
+                        //}
                     }
                     else
                     {
@@ -211,15 +203,15 @@ namespace MyHomeApp.iOS
                                 Sound = UNNotificationSound.Default
                             });
                         }
-                        else
-                        {
-                            TriggerNotification(new UNMutableNotificationContent
-                            {
-                                Title = "Garage Alert",
-                                Body = "Congrats, you just left home and remembered to close the garage door!",
-                                Sound = UNNotificationSound.Default
-                            });
-                        }
+                        //else
+                        //{
+                        //    TriggerNotification(new UNMutableNotificationContent
+                        //    {
+                        //        Title = "Garage Alert",
+                        //        Body = "Congrats, you just left home and remembered to close the garage door!",
+                        //        Sound = UNNotificationSound.Default
+                        //    });
+                        //}
                     }
                     else
                     {
