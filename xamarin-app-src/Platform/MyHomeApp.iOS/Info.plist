@@ -43,5 +43,7 @@
 		<string>location</string>
 		<string>fetch</string>
 	</array>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
 </dict>
 </plist>

@@ -57,6 +57,12 @@ namespace MyHomeApp
             set => AppSettings.AddOrUpdateValue(nameof(AlertsAllowed), value);
         }
 
+        public static bool LocationDebugMode
+        {
+            get => AppSettings.GetValueOrDefault(nameof(LocationDebugMode), true);
+            set => AppSettings.AddOrUpdateValue(nameof(LocationDebugMode), value);
+        }
+
         public static bool SettingsSet()
         {
             return DeviceId != default(string) && AccessToken != default(string);

@@ -12,7 +12,7 @@ using Polly;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 
-// Beacon code commented out, using IFTTT atm
+// Beacon code commented out
 
 namespace MyHomeApp.iOS
 {
@@ -68,25 +68,15 @@ namespace MyHomeApp.iOS
 
                 locationManager.RegionEntered += async (s, e) => await OnApprochingHome();
                 locationManager.RegionLeft += async (s, e) => await CheckIfGarageDoorIsOpen();
-
-                //locationManager.RegionEntered += (object sender, CLRegionEventArgs e) => {
-                //    TriggerNotification(new UNMutableNotificationContent
-                //    {
-                //        Title = "test",
-                //        Body = "RegionEntered",
-                //        Sound = UNNotificationSound.Default
-                //    });
-                //};
-                //locationManager.RegionLeft += (sender, e) => {
-                //    TriggerNotification(new UNMutableNotificationContent
-                //    {
-                //        Title = "test",
-                //        Body = "RegionLeft",
-                //        Sound = UNNotificationSound.Default
-                //    });
-                //};
-
                 locationManager.RequestAlwaysAuthorization();
+
+                if (locationManager.MonitoredRegions.Count() == 0)
+                {
+                    try {
+                        locationManager.StartMonitoring(HomeRegion());
+                    }
+                    catch {}
+                }
             }
         }
 
@@ -137,15 +127,17 @@ namespace MyHomeApp.iOS
                                 Sound = UNNotificationSound.Default
                             });
                         }
-                        //else
-                        //{
-                        //    TriggerNotification(new UNMutableNotificationContent
-                        //    {
-                        //        Title = "Approaching Home Alert",
-                        //        Body = "You approached home, but the front garden lights didn't turn on. They were either already on, or it was not night time.",
-                        //        Sound = UNNotificationSound.Default
-                        //    });
-                        //}
+                        else
+                        {
+                            if (!Settings.LocationDebugMode) return;
+
+                            TriggerNotification(new UNMutableNotificationContent
+                            {
+                                Title = "Approaching Home Alert",
+                                Body = "You approached home, but the front garden lights didn't turn on. They were either already on, or it was not night time.",
+                                Sound = UNNotificationSound.Default
+                            });
+                        }
                     }
                     else
                     {
@@ -203,15 +195,17 @@ namespace MyHomeApp.iOS
                                 Sound = UNNotificationSound.Default
                             });
                         }
-                        //else
-                        //{
-                        //    TriggerNotification(new UNMutableNotificationContent
-                        //    {
-                        //        Title = "Garage Alert",
-                        //        Body = "Congrats, you just left home and remembered to close the garage door!",
-                        //        Sound = UNNotificationSound.Default
-                        //    });
-                        //}
+                        else
+                        {
+                            if (!Settings.LocationDebugMode) return;
+
+                            TriggerNotification(new UNMutableNotificationContent
+                            {
+                                Title = "Garage Alert",
+                                Body = "Congrats, you just left home and remembered to close the garage door!",
+                                Sound = UNNotificationSound.Default
+                            });
+                        }
                     }
                     else
                     {
