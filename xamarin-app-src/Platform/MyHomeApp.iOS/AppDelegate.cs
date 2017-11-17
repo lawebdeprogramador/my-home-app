@@ -87,6 +87,14 @@ namespace MyHomeApp.iOS
                 //};
 
                 locationManager.RequestAlwaysAuthorization();
+
+                if (locationManager.MonitoredRegions.Count() == 0)
+                {
+                    try {
+                        locationManager.StartMonitoring(HomeRegion());
+                    }
+                    catch {}
+                }
             }
         }
 
@@ -137,15 +145,17 @@ namespace MyHomeApp.iOS
                                 Sound = UNNotificationSound.Default
                             });
                         }
-                        //else
-                        //{
-                        //    TriggerNotification(new UNMutableNotificationContent
-                        //    {
-                        //        Title = "Approaching Home Alert",
-                        //        Body = "You approached home, but the front garden lights didn't turn on. They were either already on, or it was not night time.",
-                        //        Sound = UNNotificationSound.Default
-                        //    });
-                        //}
+                        else
+                        {
+                            if (!Settings.LocationDebugMode) return;
+
+                            TriggerNotification(new UNMutableNotificationContent
+                            {
+                                Title = "Approaching Home Alert",
+                                Body = "You approached home, but the front garden lights didn't turn on. They were either already on, or it was not night time.",
+                                Sound = UNNotificationSound.Default
+                            });
+                        }
                     }
                     else
                     {
@@ -203,15 +213,17 @@ namespace MyHomeApp.iOS
                                 Sound = UNNotificationSound.Default
                             });
                         }
-                        //else
-                        //{
-                        //    TriggerNotification(new UNMutableNotificationContent
-                        //    {
-                        //        Title = "Garage Alert",
-                        //        Body = "Congrats, you just left home and remembered to close the garage door!",
-                        //        Sound = UNNotificationSound.Default
-                        //    });
-                        //}
+                        else
+                        {
+                            if (!Settings.LocationDebugMode) return;
+
+                            TriggerNotification(new UNMutableNotificationContent
+                            {
+                                Title = "Garage Alert",
+                                Body = "Congrats, you just left home and remembered to close the garage door!",
+                                Sound = UNNotificationSound.Default
+                            });
+                        }
                     }
                     else
                     {
