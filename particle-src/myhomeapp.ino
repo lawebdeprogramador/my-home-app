@@ -120,8 +120,10 @@ int toggleSunsetLightsSetting(String command) {
 int frontGardenLightsOn(String command) {
     Particle.publish(eventNameCloudFunction, "frontGardenLightsOn", 60, PRIVATE);
 
-    if (myRelays.isOn(frontGardenLights))
+    if (myRelays.isOn(frontGardenLights)) {
+        clearOnApproachingEvent();
         return 1;
+    }
     
     return 0;
 }
@@ -129,8 +131,10 @@ int frontGardenLightsOn(String command) {
 int toggleFrontGardenLights(String command) {
     Particle.publish(eventNameCloudFunction, "toggleFrontGardenLights", 60, PRIVATE);
 
-    if (myRelays.isOn(frontGardenLights))
+    if (myRelays.isOn(frontGardenLights)) {
+        clearOnApproachingEvent();
         myRelays.off(frontGardenLights);
+    }
     else
         myRelays.on(frontGardenLights);
 
