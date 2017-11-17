@@ -12,7 +12,7 @@ using Polly;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 
-// Beacon code commented out, using IFTTT atm
+// Beacon code commented out
 
 namespace MyHomeApp.iOS
 {
@@ -68,24 +68,6 @@ namespace MyHomeApp.iOS
 
                 locationManager.RegionEntered += async (s, e) => await OnApprochingHome();
                 locationManager.RegionLeft += async (s, e) => await CheckIfGarageDoorIsOpen();
-
-                //locationManager.RegionEntered += (object sender, CLRegionEventArgs e) => {
-                //    TriggerNotification(new UNMutableNotificationContent
-                //    {
-                //        Title = "test",
-                //        Body = "RegionEntered",
-                //        Sound = UNNotificationSound.Default
-                //    });
-                //};
-                //locationManager.RegionLeft += (sender, e) => {
-                //    TriggerNotification(new UNMutableNotificationContent
-                //    {
-                //        Title = "test",
-                //        Body = "RegionLeft",
-                //        Sound = UNNotificationSound.Default
-                //    });
-                //};
-
                 locationManager.RequestAlwaysAuthorization();
 
                 if (locationManager.MonitoredRegions.Count() == 0)
