@@ -25,10 +25,11 @@ int garageDoorButton = 2;
 bool sunsetModeActive = true;
 bool isNighttime = false;
 String eventNameCloudFunction = "Cloud function triggered";
+String currentStateCloudEventName = "CurrentState";
 String currentState = "0|0|0";
 
 int eventArray[10][9]; // Store events (up to 10) for time based triggers.
-int numberOfEvents = 0;
+int numberOfEvents = 4;
 
 void setup() {
     
@@ -72,15 +73,18 @@ void loop(){
 int onSunset(String command) {
     Particle.publish(eventNameCloudFunction, "onSunset", 60, PRIVATE);
 
+    int success = 0;
     isNighttime = true;
     
     if (sunsetModeActive) {
         turnOnFrontGardenLights();
         
         createOnSunsetEvent();
-        return 1;
+        success = 1;
     }
-    return 0;
+
+    PublishCurrentStateEvent();
+    return success;
 }
 
 int onSunrise(String command) {
@@ -89,12 +93,14 @@ int onSunrise(String command) {
     isNighttime = false;
     turnOffFrontGardenLights(); // just in case lights were still on
 
+    PublishCurrentStateEvent();
     return 1;
 }
 
 int onApproachingHome(String command) {
     Particle.publish(eventNameCloudFunction, "onApproachingHome", 60, PRIVATE);
 
+    int success = 0;
     if (isNighttime && !areFrontGardenLightsOn()) {
         turnOnFrontGardenLights();
         
@@ -102,10 +108,11 @@ int onApproachingHome(String command) {
         
         createOnApproachingEvent();
 
-        return 1;
+        success = 1;
     }
 
-    return 0;
+    PublishCurrentStateEvent();
+    return success;
 }
 
 int toggleSunsetLightsSetting(String command) {
@@ -115,17 +122,22 @@ int toggleSunsetLightsSetting(String command) {
         sunsetModeActive = false;
     else
         sunsetModeActive = true;
+        
+    PublishCurrentStateEvent();
 }
 
 int frontGardenLightsOn(String command) {
     Particle.publish(eventNameCloudFunction, "frontGardenLightsOn", 60, PRIVATE);
 
+    int success = 0;
     if (myRelays.isOn(frontGardenLights)) {
         clearOnApproachingEvent();
-        return 1;
+
+        success = 1;
     }
     
-    return 0;
+    PublishCurrentStateEvent();
+    return success;
 }
 
 int toggleFrontGardenLights(String command) {
@@ -138,6 +150,7 @@ int toggleFrontGardenLights(String command) {
     else
         myRelays.on(frontGardenLights);
 
+    PublishCurrentStateEvent();
     return 1;
 }
 
@@ -148,27 +161,32 @@ int pressGarageDoorButton(String command) {
     delay(1000);
     myRelays.off(garageDoorButton);
 
+    PublishCurrentStateEvent();
+    createNotifyGarageStateEvent();
     return 1;
 }
 
 int notifyGarageState(String command) {
     Particle.publish(eventNameCloudFunction, "garageState", 60, PRIVATE);
 
+    int success = 1;
     if (garageDoorStatusCheck() == "OPEN") {
         bool success;
         success = Particle.publish("notify-garage-open");
         if (!success) {
-          return 0;
+            success = 0;
         }
     }
     
-    return 1;
+    PublishCurrentStateEvent();
+    return success;
 }
 
 int turnRelayOn(String command) {
     Particle.publish(eventNameCloudFunction, "turnRelayOn", 60, PRIVATE);
 
     myRelays.on(command.toInt());
+    PublishCurrentStateEvent();
     return 1;
 }
 
@@ -176,6 +194,7 @@ int turnRelayOff(String command) {
     Particle.publish(eventNameCloudFunction, "turnRelayOff", 60, PRIVATE);
 
     myRelays.off(command.toInt());
+    PublishCurrentStateEvent();
     return 1;
 }
 
@@ -246,6 +265,10 @@ void evalTime(int year, int month, int dayOfMonth, int dayOfWeek, int hour, int 
                 runCommand = false;
             }
         }
+        // Check if there is a command ID
+        if(eventArray[i][7] == 0){
+            runCommand = false;
+        }
         
         if(runCommand){
             Particle.publish("Running command", String(eventArray[i][7]), 60, PRIVATE);
@@ -270,7 +293,7 @@ bool areFrontGardenLightsOn() {
 
 void executeCommand(int commandID, int commandData){
     switch(commandID){
-        case 0:
+        case 1:
             // Sync time once a day with the cloud
             if (Particle.syncTimeDone())
                 Particle.syncTime();
@@ -278,24 +301,31 @@ void executeCommand(int commandID, int commandData){
             Particle.publish("Sync time command triggered", Time.format(Time.now(), TIME_FORMAT_ISO8601_FULL), 60, PRIVATE);
             break;
 
-        case 1:
+        case 2:
             // Turn front garden lights off
-            turnOffFrontGardenLights();
             clearOnSunsetEvent();
+            turnOffFrontGardenLights();
+            PublishCurrentStateEvent();
             break;
 
-        case 2:
+        case 3:
             // Turn front garden lights off after approached home event
-            turnOffFrontGardenLights();
             clearOnApproachingEvent();
+            turnOffFrontGardenLights();
+            PublishCurrentStateEvent();
+            break;
+
+        case 4:
+            // Notify garage door state
+            clearNotifyGarageStateEvent();
+            PublishCurrentStateEvent();
             break;
     }
 }
 
 void createDefaultEvent() {
     eventArray[0][5] = 1;  // Event 0 is all zero's to sync time at 12:01am (can't be midnight, as then all will be zero and not get called)
-    
-    numberOfEvents++;
+    eventArray[0][7] = 1; // commandID = 1
 }
 
 void createOnSunsetEvent() {
@@ -304,33 +334,52 @@ void createOnSunsetEvent() {
         eventArray[1][5] = 1;
     else
         eventArray[1][5] = Time.minute();
-    eventArray[1][7] = 1; // commandID = 1
-    
-    numberOfEvents++;
+    eventArray[1][7] = 2; // commandID = 2
 }
 
 void clearOnSunsetEvent() {
     eventArray[1][5] = 0;
     eventArray[1][7] = 0;
-    
-    numberOfEvents--;
 }
 
 void createOnApproachingEvent() {
     // Create event to turn front garden lights off 15 minutes when arrived home Ie: 12:15am arrived home, 12:30am turn lights off
     eventArray[2][4] = Time.hour();
     eventArray[2][5] = Time.minute() + 15;
-    eventArray[2][7] = 2; // commandID = 2
-    
-    numberOfEvents++;
+    eventArray[2][7] = 3; // commandID = 3
 }
 
 void clearOnApproachingEvent() {
     eventArray[2][4] = 0;
     eventArray[2][5] = 0;
     eventArray[2][7] = 0;
-    
-    numberOfEvents--;
+}
+
+void createNotifyGarageStateEvent() {
+    // Create event to notify garage door state, 16 seconds after garage door button is pressed
+
+    int h1 = Time.hour();
+    int m1 = Time.minute();
+    int s1 = Time.second();
+    int h2 = 0;
+    int m2 = 0;
+    int s2 = 16;
+
+    int s3 = (s1 + s2) % 60;
+    int m3 = (m1 + m2 + ((s1 + s2) / 60)) % 60;
+    int h3 = (h1 + h2 + ((m1+m2) / 60));
+
+    eventArray[3][4] = h3;
+    eventArray[3][5] = m3;
+    eventArray[3][6] = s3;
+    eventArray[3][7] = 4; // commandID = 4
+}
+
+void clearNotifyGarageStateEvent() {
+    eventArray[3][4] = 0;
+    eventArray[3][5] = 0;
+    eventArray[3][6] = 0;
+    eventArray[3][7] = 0;
 }
 
 // void testRelays() {
@@ -354,6 +403,11 @@ void createCurrentState() {
 
     currentState =  String(String(sunsetModeActive) + "|" +  String(areFrontGardenLightsOn()) + "|" + String(eventArray[1][4]) + ":" + String(eventArray[1][5]) + "|" + garageDoorStatusCheck());
 
+}
+
+void PublishCurrentStateEvent() {
+    createCurrentState();
+    Particle.publish(currentStateCloudEventName, currentState, 60, PRIVATE);
 }
 
 String garageDoorStatusCheck() {

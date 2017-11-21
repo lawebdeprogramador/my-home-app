@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
     x:Class="MyHomeApp.Pages.SetupPage"
     xmlns:local="clr-namespace:MyHomeApp.Pages;assembly=MyHomeApp"
+    xmlns:controls="clr-namespace:MyHomeApp.Controls;assembly=MyHomeApp"
     BackgroundColor="#efeff4">
     <local:BasePage.Padding>
         <OnPlatform x:TypeArguments="Thickness">
@@ -22,7 +23,10 @@
                 <TableRoot>
                     <TableSection Title="IoT device details">
                         <EntryCell Text="{Binding DeviceId}" Label="Device ID" Placeholder="Particle Device ID" HorizontalTextAlignment="End" LabelColor="Black" />
-                        <EntryCell Text="{Binding AccessToken}" Label="Access Token" Placeholder="API Access" HorizontalTextAlignment="End" LabelColor="Black" />
+                        <EntryCell Text="{Binding ParticleEmail}" Label="Username" Placeholder="Particle Email" HorizontalTextAlignment="End" LabelColor="Black" />
+                        <!--<EntryCell Text="{Binding ParticlePassword}" Label="Password" Placeholder="Particle Password" HorizontalTextAlignment="End" LabelColor="Black" />-->
+                        <controls:ExtendedEntryCell IsPassword="True" Text="{Binding ParticlePassword}" Label="Password" Placeholder="Particle Password" HorizontalTextAlignment="End" LabelColor="Black" />
+                        <!--<EntryCell Text="{Binding AccessToken}" Label="Access Token" Placeholder="API Access" HorizontalTextAlignment="End" LabelColor="Black" />-->
                     </TableSection>
                     <!--<TableSection Title="Garage Beacon">
                         <EntryCell Text="{Binding BeaconUuid}" Label="UUID" Placeholder="Beacon GUID" HorizontalTextAlignment="End" LabelColor="Black" />

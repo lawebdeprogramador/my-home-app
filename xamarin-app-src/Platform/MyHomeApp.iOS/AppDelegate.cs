@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Foundation;
@@ -7,8 +6,6 @@ using UIKit;
 using CoreLocation;
 using UserNotifications;
 using MyHomeApp.Services;
-using Refit;
-using Polly;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 
@@ -56,7 +53,7 @@ namespace MyHomeApp.iOS
 
         private void StartMonitoringHome()
         {
-            if (Settings.GeographicRegionSet())
+            if (Settings.SettingsSet() && Settings.GeographicRegionSet())
             {
                 locationManager.AuthorizationChanged += (s, e) =>
                 {
@@ -105,20 +102,14 @@ namespace MyHomeApp.iOS
         {
             try
             {
-                if (ConnectivityService.Instance.IsConnected && Settings.AlertsAllowed)
+                if (ConnectivityService.Instance.IsConnected && Settings.AlertsAllowed && Settings.SettingsSet())
                 {
-                    var apiCall = RestService.For<IParticleApi>(Settings.ParticleUrl);
-                    var data = new Dictionary<string, object> {
-                        {"args", ""}
-                    };
-                    var response = await ResilientCall.ExecuteWithRetry(
-                            async () =>
-                                await apiCall.CallFunction("onApproaHome", data, Settings.DeviceId, Settings.AccessToken)
-                        ).ConfigureAwait(false);
+                    await App.InitializeDevice();
 
-                    if (response.Outcome == OutcomeType.Successful)
+                    try
                     {
-                        if (response.Result.ReturnValue == 1)
+                        var response = await App.Device.CallFunctionAsync("onApproaHome");
+                        if (response == "1")
                         {
                             TriggerNotification(new UNMutableNotificationContent
                             {
@@ -139,12 +130,12 @@ namespace MyHomeApp.iOS
                             });
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
                         TriggerNotification(new UNMutableNotificationContent
                         {
-                            Title = "Approaching Home Alert Final Exception",
-                            Body = response.FinalException.Message,
+                            Title = "Approaching Home Alert Exception",
+                            Body = ex.Message,
                             Sound = UNNotificationSound.Default
                         });
                     }
@@ -154,7 +145,7 @@ namespace MyHomeApp.iOS
                     TriggerNotification(new UNMutableNotificationContent
                     {
                         Title = "Approaching Home Alert Exception",
-                        Body = "No interner or not allowed",
+                        Body = "No internet or not allowed",
                         Sound = UNNotificationSound.Default
                     });
                 }
@@ -174,18 +165,15 @@ namespace MyHomeApp.iOS
         {
             try
             {
-                if (ConnectivityService.Instance.IsConnected && Settings.AlertsAllowed)
+                if (ConnectivityService.Instance.IsConnected && Settings.AlertsAllowed && Settings.SettingsSet())
                 {
-                    var apiCall = RestService.For<IParticleApi>(Settings.ParticleUrl);
-                    var response = await ResilientCall.ExecuteWithRetry(
-                            async () =>
-                                await apiCall.GetVariable("currentState", Settings.DeviceId, Settings.AccessToken)
-                        ).ConfigureAwait(false);
-
-                    if (response.Outcome == OutcomeType.Successful)
+                    await App.InitializeDevice();
+                    
+                    try
                     {
-                        var settings = response.Result.Result.Split('|');
+                        var currentState = await App.Device.GetVariableAsync("currentState");
 
+                        var settings = currentState.Result.ToString().Split('|');
                         if (settings[3] == "OPEN")
                         {
                             TriggerNotification(new UNMutableNotificationContent
@@ -207,12 +195,12 @@ namespace MyHomeApp.iOS
                             });
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
                         TriggerNotification(new UNMutableNotificationContent
                         {
                             Title = "Garage Alert Final Exception",
-                            Body = response.FinalException.Message,
+                            Body = ex.Message,
                             Sound = UNNotificationSound.Default
                         });
                     }
@@ -222,7 +210,7 @@ namespace MyHomeApp.iOS
                     TriggerNotification(new UNMutableNotificationContent
                     {
                         Title = "Garage Alert Exception",
-                        Body = "No interner or not allowed",
+                        Body = "No internet or not allowed",
                         Sound = UNNotificationSound.Default
                     });
                 }

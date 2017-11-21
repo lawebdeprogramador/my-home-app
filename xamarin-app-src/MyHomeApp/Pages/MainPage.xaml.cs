@@ -17,17 +17,20 @@ namespace MyHomeApp.Pages
 
 	    private void Handle_FrontGardenLightsToggle(object sender, ToggledEventArgs e)
 	    {
-	        MessagingCenter.Send<string>("", "ToggleFrontGardenLights");
+            if (!App.SettingCurrentState)
+	            MessagingCenter.Send<string>("", "ToggleFrontGardenLights");
 	    }
 
 	    private void Handle_SunsetModeToggle(object sender, ToggledEventArgs e)
-	    {
-	        MessagingCenter.Send<string>("", "ToggleSunsetMode");
+        {
+            if (!App.SettingCurrentState)
+	            MessagingCenter.Send<string>("", "ToggleSunsetMode");
 	    }
 
 	    private void Handle_GarageDoorButton(object sender, ToggledEventArgs e)
-	    {
-	        MessagingCenter.Send<string>("", "PressGarageDoorButton");
+        {
+            if (!App.SettingCurrentState)
+	            MessagingCenter.Send<string>("", "PressGarageDoorButton");
 	    }
 	}
 }

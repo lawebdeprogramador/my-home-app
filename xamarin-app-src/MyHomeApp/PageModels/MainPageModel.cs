@@ -2,19 +2,20 @@
 using Xamarin.Forms;
 using PropertyChanged;
 using FreshMvvm;
-using Refit;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using Acr.UserDialogs;
 using MyHomeApp.Services;
-using Polly;
 using System.ComponentModel;
+using Particle;
+using Particle.Helpers;
+using MyHomeApp.Helpers;
 
 namespace MyHomeApp.PageModels
 {
     [AddINotifyPropertyChangedInterface]
     public class MainPageModel : FreshBasePageModel, INotifyPropertyChanged
     {
+        public static readonly AsyncLock SyncLock = new AsyncLock();
         public bool Syncing { get; set; }
         public bool SunsetModeActive { get; set; }
         public bool SunsetModeActiveToggleEnabled { get; set; } = true;
@@ -38,6 +39,7 @@ namespace MyHomeApp.PageModels
 
         public override void Init(object initData)
         {
+            
         }
 
         protected override async void ViewIsAppearing(object sender, EventArgs e)
@@ -50,75 +52,58 @@ namespace MyHomeApp.PageModels
             {
                 await UserDialogs.Instance.AlertAsync("An error has occured. Please refresh");
             }
+
+            if (App.CurrentStateSubscribedId == Guid.Empty)
+            {
+                App.CurrentStateSubscribedId = await ParticleCloud.SharedInstance.SubscribeToMyDevicesEventsWithPrefixAsync(
+                    "CurrentState",
+                    Settings.DeviceId,
+                    async (object s, ParticleEventArgs pe) => await SetCurrentStateEvent(s, pe)
+                );
+            }
+        }
+
+        private async Task SetCurrentStateEvent(object s, ParticleEventArgs pe)
+        {
+            await SetCurrentState(pe.EventData.Data);
         }
 
         public async Task ToggleFrontGardenLights()
         {
-            if (Syncing) return;
-
-            FrontGardenLightsToggleEnabled = false;
-
-            var apiCall = RestService.For<IParticleApi>(Settings.ParticleUrl);
-            var data = new Dictionary<string, object> {
-                {"args", ""}
-            };
-            var response = await ResilientCall.ExecuteWithRetry(
-                    async () =>
-                        await apiCall.CallFunction("toggleFront", data, Settings.DeviceId, Settings.AccessToken)
-                ).ConfigureAwait(false);
-
-            if (response.Outcome == OutcomeType.Successful)
+            if (!await HasInternetConnection())
+                return;
+            
+            try
             {
-                await PerformSync();
+                FrontGardenLightsToggleEnabled = false;
+                var response = await App.Device.CallFunctionAsync("toggleFront");
             }
-            else
+            catch (Exception ex)
             {
-                await UserDialogs.Instance.AlertAsync("An error has occured. Please try again.");
+                await UserDialogs.Instance.AlertAsync($"An error has occured. Please try again. {ex.Message}");
             }
-
-            FrontGardenLightsToggleEnabled = true;
         }
 
         public async Task ToggleSunsetMode()
         {
-            if (Syncing) return;
-
-            if (!ConnectivityService.Instance.IsConnected)
-            {
-                await UserDialogs.Instance.AlertAsync("No internet connection...");
+            if (!await HasInternetConnection())
                 return;
-            }
-
-            SunsetModeActiveToggleEnabled = false;
-
-            var apiCall = RestService.For<IParticleApi>(Settings.ParticleUrl);
-            var data = new Dictionary<string, object> {
-                {"args", ""}
-            };
-            var response = await ResilientCall.ExecuteWithRetry(
-                    async () =>
-                        await apiCall.CallFunction("toggleSunset", data, Settings.DeviceId, Settings.AccessToken)
-                ).ConfigureAwait(false);
-
-            if (response.Outcome == OutcomeType.Successful)
+            
+            try
             {
-                await PerformSync();
+                SunsetModeActiveToggleEnabled = false;
+                var response = await App.Device.CallFunctionAsync("toggleSunset");
             }
-            else
+            catch (Exception ex)
             {
-                await UserDialogs.Instance.AlertAsync("An error has occured. Please try again.");
+                await UserDialogs.Instance.AlertAsync($"An error has occured. Please try again. {ex.Message}");
             }
-
-            SunsetModeActiveToggleEnabled = true;
         }
 
         public async Task PressGarageDoorButton()
         {
-            if (!ConnectivityService.Instance.IsConnected)
-            {
-                await UserDialogs.Instance.AlertAsync("No internet connection...");
+            if (!await HasInternetConnection())
                 return;
-            }
 
             if (PressingGarageDoorButton)
             {
@@ -126,32 +111,25 @@ namespace MyHomeApp.PageModels
                 return;
             }
 
-            GarageDoorOperating = false;
-
-            PressingGarageDoorButton = true;
-
-            var apiCall = RestService.For<IParticleApi>(Settings.ParticleUrl);
-            var data = new Dictionary<string, object> {
-                {"args", ""}
-            };
-            var response = await ResilientCall.ExecuteWithRetry(
-                    async () =>
-                        await apiCall.CallFunction("garageButton", data, Settings.DeviceId, Settings.AccessToken)
-                ).ConfigureAwait(false);
-
-            if (response.Outcome != OutcomeType.Successful)
+            try
             {
-                await UserDialogs.Instance.AlertAsync("Failed to press garage door button");
+                GarageDoorOperating = false;
+                PressingGarageDoorButton = true;
+
+                var response = await App.Device.CallFunctionAsync("garageButton");
+
+                GarageDoorOperating = true;
+                GarageDoorButton = false;
+
+                await Task.Delay(500); // The toggle handler will fire causing a loop, so pause for a bit to return out of PressGarageDoorButton() method
+
+                PressingGarageDoorButton = false;
+                await ProgressOfGarageDoor();
             }
-
-            GarageDoorOperating = true;
-            GarageDoorButton = false;
-
-            await Task.Delay(1000); // The toggle handler will fire causing a loop, so pause for a bit to return out of PressGarageDoorButton() method
-
-            PressingGarageDoorButton = false;
-
-            await ProgressOfGarageDoor();
+            catch (Exception ex)
+            {
+                await UserDialogs.Instance.AlertAsync($"Failed to press garage door button. {ex.Message}");
+            }
         }
 
         private async Task ProgressOfGarageDoor()
@@ -163,7 +141,7 @@ namespace MyHomeApp.PageModels
                 if (GarageDoorOperating)
                 {
                     GarageDoorStatusText = $"Operating: {i} seconds remaining";
-                    await Task.Delay(1000);
+                    await Task.Delay(500);
                 }
                 else
                 {
@@ -183,6 +161,8 @@ namespace MyHomeApp.PageModels
 
             UserDialogs.Instance.ShowLoading("Loading home state...");
 
+            await App.InitializeDevice();
+            
             var success = await PerformSync();
 
             UserDialogs.Instance.HideLoading();
@@ -192,51 +172,76 @@ namespace MyHomeApp.PageModels
 
         private async Task<bool> PerformSync()
         {
-            if (!ConnectivityService.Instance.IsConnected)
+            using (await SyncLock.LockAsync())
             {
-                await UserDialogs.Instance.AlertAsync("No internet connection...");
-                return false;
-            }
-
-            Syncing = true;
-
-            var apiCall = RestService.For<IParticleApi>(Settings.ParticleUrl);
-            var response = await ResilientCall.ExecuteWithRetry(
-                    async () =>
-                        await apiCall.GetVariable("currentState", Settings.DeviceId, Settings.AccessToken)
-                ).ConfigureAwait(false);
-
-            var success = false;
-            if (response.Outcome == OutcomeType.Successful)
-            {
-                var settings = response.Result.Result.Split('|');
-                SunsetModeActive = settings[0] == "1";
-                AreFrontGardenLightsOn = settings[1] == "1";
-
-                var hour = int.Parse(settings[2].Split(':')[0]);
-                var min = int.Parse(settings[2].Split(':')[1]);
-                if (min == 0)
+                if (!ConnectivityService.Instance.IsConnected)
                 {
-                    SunsetLightsOffAt = "n/a";
-                }
-                else
-                {
-                    DateTime dt = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, hour, min, 00);
-                    SunsetLightsOffAt = $"{dt:h:mm tt}";
+                    await UserDialogs.Instance.AlertAsync("No internet connection...");
+                    return false;
                 }
 
-                if (settings[3] == "CLOSED")
-                    GarageDoorOpen = false;
-                else if (settings[3] == "OPEN")
-                    GarageDoorOpen = true;
+                Syncing = true;
+                var success = false;
 
-                await Task.Delay(500); // The toggle handler will fire causing a loop, so pause for a bit to return out of ToggleFrontGardenLights() method
-                success = true;
+                try
+                {
+                    var currentState = await App.Device.GetVariableAsync("currentState");
+                    await SetCurrentState(currentState.Result.ToString());
+
+                    success = true;
+                }
+                catch (Exception ex)
+                {
+                    await UserDialogs.Instance.AlertAsync($"An error has occured. Please try again. {ex.Message}");
+                }
+
+                Syncing = false;
+
+                return success;
+            }
+        }
+
+        private async Task SetCurrentState(string currentState)
+        {
+            App.SettingCurrentState = true;
+
+            var settings = currentState.Split('|');
+
+            SunsetModeActiveToggleEnabled = true;
+            FrontGardenLightsToggleEnabled = true;
+
+            SunsetModeActive = settings[0] == "1";
+            AreFrontGardenLightsOn = settings[1] == "1";
+
+            var hour = int.Parse(settings[2].Split(':')[0]);
+            var min = int.Parse(settings[2].Split(':')[1]);
+            if (min == 0)
+            {
+                SunsetLightsOffAt = "n/a";
+            }
+            else
+            {
+                DateTime dt = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, hour, min, 00);
+                SunsetLightsOffAt = $"{dt:h:mm tt}";
             }
 
-            Syncing = false;
+            GarageDoorOperating = false;
+            if (settings[3] == "CLOSED")
+                GarageDoorOpen = false;
+            else if (settings[3] == "OPEN")
+                GarageDoorOpen = true;
 
-            return success;
+            await Task.Delay(500);
+            App.SettingCurrentState = false;
+        }
+
+        private async Task<bool> HasInternetConnection()
+        {
+            if (ConnectivityService.Instance.IsConnected)
+                return true;
+            
+            await UserDialogs.Instance.AlertAsync("No internet connection...");
+            return false;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using Plugin.Settings;
+﻿using System;
+using Particle;
+using Plugin.Settings;
 using Plugin.Settings.Abstractions;
 
 namespace MyHomeApp
@@ -15,29 +17,29 @@ namespace MyHomeApp
             set => AppSettings.AddOrUpdateValue(nameof(DeviceId), value);
         }
 
-        public static string AccessToken
-        {
-            get => AppSettings.GetValueOrDefault(nameof(AccessToken), default(string));
-            set => AppSettings.AddOrUpdateValue(nameof(AccessToken), value);
-        }
+        //public static string AccessToken
+        //{
+        //    get => AppSettings.GetValueOrDefault(nameof(AccessToken), default(string));
+        //    set => AppSettings.AddOrUpdateValue(nameof(AccessToken), value);
+        //}
 
-        public static string BeaconUuid
-        {
-            get => AppSettings.GetValueOrDefault(nameof(BeaconUuid), default(string));
-            set => AppSettings.AddOrUpdateValue(nameof(BeaconUuid), value);
-        }
+        //public static string BeaconUuid
+        //{
+        //    get => AppSettings.GetValueOrDefault(nameof(BeaconUuid), default(string));
+        //    set => AppSettings.AddOrUpdateValue(nameof(BeaconUuid), value);
+        //}
 
-        public static string BeaconMajor
-        {
-            get => AppSettings.GetValueOrDefault(nameof(BeaconMajor), default(string));
-            set => AppSettings.AddOrUpdateValue(nameof(BeaconMajor), value);
-        }
+        //public static string BeaconMajor
+        //{
+        //    get => AppSettings.GetValueOrDefault(nameof(BeaconMajor), default(string));
+        //    set => AppSettings.AddOrUpdateValue(nameof(BeaconMajor), value);
+        //}
 
-        public static string BeaconMinor
-        {
-            get => AppSettings.GetValueOrDefault(nameof(BeaconMinor), default(string));
-            set => AppSettings.AddOrUpdateValue(nameof(BeaconMinor), value);
-        }
+        //public static string BeaconMinor
+        //{
+        //    get => AppSettings.GetValueOrDefault(nameof(BeaconMinor), default(string));
+        //    set => AppSettings.AddOrUpdateValue(nameof(BeaconMinor), value);
+        //}
 
         public static double Latitude
         {
@@ -63,15 +65,15 @@ namespace MyHomeApp
             set => AppSettings.AddOrUpdateValue(nameof(LocationDebugMode), value);
         }
 
-        public static bool SettingsSet()
-        {
-            return DeviceId != default(string) && AccessToken != default(string);
-        }
+        //public static bool SettingsSet()
+        //{
+        //    return DeviceId != default(string) && AccessToken != default(string);
+        //}
 
-        public static bool BeaconSet()
-        {
-            return BeaconUuid != default(string) && BeaconMajor != default(string) && BeaconMinor != default(string);
-        }
+        //public static bool BeaconSet()
+        //{
+        //    return BeaconUuid != default(string) && BeaconMajor != default(string) && BeaconMinor != default(string);
+        //}
 
         public static bool GeographicRegionSet()
         {
@@ -81,6 +83,35 @@ namespace MyHomeApp
         public static void ClearSettings()
         {
             AppSettings.Clear();
+        }
+
+        public static string ParticleAccessToken
+        {
+            get => AppSettings.GetValueOrDefault(nameof(ParticleAccessToken), default(string));
+            set => AppSettings.AddOrUpdateValue(nameof(ParticleAccessToken), value);
+        }
+
+        public static string ParticleRefreshToken
+        {
+            get => AppSettings.GetValueOrDefault(nameof(ParticleRefreshToken), default(string));
+            set => AppSettings.AddOrUpdateValue(nameof(ParticleRefreshToken), value);
+        }
+
+        public static DateTime ParticleExpiration
+        {
+            get => AppSettings.GetValueOrDefault(nameof(ParticleExpiration), default(DateTime));
+            set => AppSettings.AddOrUpdateValue(nameof(ParticleExpiration), value);
+        }
+
+        public static bool SettingsSet()
+        {
+            if (DeviceId != default(string) && ParticleAccessToken != default(string) && ParticleRefreshToken != default(string) && ParticleExpiration > DateTime.Now)
+            {
+                ParticleCloud.AccessToken = new ParticleAccessToken(ParticleAccessToken, ParticleRefreshToken, ParticleExpiration);
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -1,7 +1,7 @@
-﻿using System;
-using Xamarin.Forms;
-using System.ComponentModel;
+﻿using Xamarin.Forms;
 using Acr.UserDialogs;
+using Particle;
+using System;
 
 namespace MyHomeApp.Pages
 {
@@ -16,6 +16,9 @@ namespace MyHomeApp.Pages
             ToolbarItems.Add(new ToolbarItem("Logout", "", async () => {
                 if (await UserDialogs.Instance.ConfirmAsync("Really log out?"))
                 {
+                    if (App.CurrentStateSubscribedId != Guid.Empty)
+                        await ParticleCloud.SharedInstance.UnsubscribeFromEventWithIdAsync(App.CurrentStateSubscribedId);
+                    
                     MessagingCenter.Send<string>("", "StopMonitoringHome");
                     Settings.ClearSettings();
                     Application.Current.MainPage = ((App)Application.Current).BuildSetupPage();
