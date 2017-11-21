@@ -146,7 +146,7 @@ namespace MyHomeApp.PageModels
                 if (GarageDoorOperating)
                 {
                     GarageDoorStatusText = $"Operating: {i} seconds remaining";
-                    await Task.Delay(500);
+                    await Task.Delay(1000);
                 }
                 else
                 {
