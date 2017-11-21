@@ -35,6 +35,7 @@ namespace MyHomeApp.PageModels
             MessagingCenter.Subscribe<string>(this, "ToggleFrontGardenLights", async _ => await ToggleFrontGardenLights());
             MessagingCenter.Subscribe<string>(this, "ToggleSunsetMode", async _ => await ToggleSunsetMode());
             MessagingCenter.Subscribe<string>(this, "PressGarageDoorButton", async _ => await PressGarageDoorButton());
+            MessagingCenter.Subscribe<string>(this, "SubscribeToParticleEvents", async _ => await SubscribeToParticleEvents());
         }
 
         public override void Init(object initData)
@@ -47,20 +48,24 @@ namespace MyHomeApp.PageModels
             base.ViewIsAppearing(sender, e);
 
             var success = await PerformSyncAndShowLoader();
+            await SubscribeToParticleEvents();
 
             if (!success)
             {
                 await UserDialogs.Instance.AlertAsync("An error has occured. Please refresh");
             }
+        }
 
-            if (App.CurrentStateSubscribedId == Guid.Empty)
-            {
-                App.CurrentStateSubscribedId = await ParticleCloud.SharedInstance.SubscribeToMyDevicesEventsWithPrefixAsync(
-                    "CurrentState",
-                    Settings.DeviceId,
-                    async (object s, ParticleEventArgs pe) => await SetCurrentStateEvent(s, pe)
-                );
-            }
+        private async Task SubscribeToParticleEvents()
+        {
+            if (App.CurrentStateSubscribedId != Guid.Empty)
+                await ParticleCloud.SharedInstance.UnsubscribeFromEventWithIdAsync(App.CurrentStateSubscribedId);
+
+            App.CurrentStateSubscribedId = await ParticleCloud.SharedInstance.SubscribeToMyDevicesEventsWithPrefixAsync(
+                "CurrentState",
+                Settings.DeviceId,
+                async (object s, ParticleEventArgs pe) => await SetCurrentStateEvent(s, pe)
+            );
         }
 
         private async Task SetCurrentStateEvent(object s, ParticleEventArgs pe)
