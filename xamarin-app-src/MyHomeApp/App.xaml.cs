@@ -52,6 +52,7 @@ namespace MyHomeApp
             if (DateTime.Now.Subtract(LastSleepTime).TotalSeconds > 60 && Settings.SettingsSet())
             {
                 MessagingCenter.Send<string>("", "PerformSync");
+                Task.Delay(1500);
                 MessagingCenter.Send<string>("", "SubscribeToParticleEvents");
             }
         }

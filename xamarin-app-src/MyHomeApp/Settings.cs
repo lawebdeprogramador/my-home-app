@@ -17,12 +17,6 @@ namespace MyHomeApp
             set => AppSettings.AddOrUpdateValue(nameof(DeviceId), value);
         }
 
-        //public static string AccessToken
-        //{
-        //    get => AppSettings.GetValueOrDefault(nameof(AccessToken), default(string));
-        //    set => AppSettings.AddOrUpdateValue(nameof(AccessToken), value);
-        //}
-
         //public static string BeaconUuid
         //{
         //    get => AppSettings.GetValueOrDefault(nameof(BeaconUuid), default(string));
@@ -64,11 +58,6 @@ namespace MyHomeApp
             get => AppSettings.GetValueOrDefault(nameof(LocationDebugMode), true);
             set => AppSettings.AddOrUpdateValue(nameof(LocationDebugMode), value);
         }
-
-        //public static bool SettingsSet()
-        //{
-        //    return DeviceId != default(string) && AccessToken != default(string);
-        //}
 
         //public static bool BeaconSet()
         //{

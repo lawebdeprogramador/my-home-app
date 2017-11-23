@@ -162,48 +162,49 @@ namespace MyHomeApp.PageModels
 
         private async Task<bool> PerformSyncAndShowLoader()
         {
-            GarageDoorOperating = false;
+            if (!ConnectivityService.Instance.IsConnected)
+            {
+                await UserDialogs.Instance.AlertAsync("No internet connection...");
+                return false;
+            }
 
-            UserDialogs.Instance.ShowLoading("Loading home state...");
+            using (await SyncLock.LockAsync())
+            {
+                GarageDoorOperating = false;
 
-            await App.InitializeDevice();
-            
-            var success = await PerformSync();
+                UserDialogs.Instance.ShowLoading("Loading home state...");
 
-            UserDialogs.Instance.HideLoading();
+                await App.InitializeDevice();
 
-            return success;
+                var success = await PerformSync();
+
+                UserDialogs.Instance.HideLoading();
+
+                return success;
+            }
         }
 
         private async Task<bool> PerformSync()
         {
-            using (await SyncLock.LockAsync())
+            Syncing = true;
+            var success = false;
+
+            try
             {
-                if (!ConnectivityService.Instance.IsConnected)
-                {
-                    await UserDialogs.Instance.AlertAsync("No internet connection...");
-                    return false;
-                }
+                var currentState = await App.Device.GetVariableAsync("currentState");
+                await SetCurrentState(currentState.Result.ToString());
 
-                Syncing = true;
-                var success = false;
-
-                try
-                {
-                    var currentState = await App.Device.GetVariableAsync("currentState");
-                    await SetCurrentState(currentState.Result.ToString());
-
-                    success = true;
-                }
-                catch (Exception ex)
-                {
-                    await UserDialogs.Instance.AlertAsync($"An error has occured. Please try again. {ex.Message}");
-                }
-
-                Syncing = false;
-
-                return success;
+                success = true;
             }
+            catch (Exception ex)
+            {
+                UserDialogs.Instance.HideLoading();
+                await UserDialogs.Instance.AlertAsync($"An error has occured. Please try again. {ex.Message}");
+            }
+
+            Syncing = false;
+
+            return success;
         }
 
         private async Task SetCurrentState(string currentState)

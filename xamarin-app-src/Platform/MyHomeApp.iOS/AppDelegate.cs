@@ -111,6 +111,8 @@ namespace MyHomeApp.iOS
                         var response = await App.Device.CallFunctionAsync("onApproaHome");
                         if (response == "1")
                         {
+                            if (!Settings.LocationDebugMode) return;
+
                             TriggerNotification(new UNMutableNotificationContent
                             {
                                 Title = "Approaching Home Alert",
@@ -179,7 +181,7 @@ namespace MyHomeApp.iOS
                             TriggerNotification(new UNMutableNotificationContent
                             {
                                 Title = "Garage Alert",
-                                Body = "Did you just leave home and forget to close the garage door?",
+                                Body = "You just left home and forget to close the garage door!",
                                 Sound = UNNotificationSound.Default
                             });
                         }
