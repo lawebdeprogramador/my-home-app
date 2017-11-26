@@ -18,7 +18,6 @@ int isRelayOn(String command);
 RelayShield myRelays;
 
 int reed = D4; // variable for reed switch
-int doorstatus = digitalRead(reed); //variable for door status
 
 int frontGardenLights = 1;
 int garageDoorButton = 2;
@@ -54,7 +53,7 @@ void setup() {
     //.begin() sets up a couple of things and is necessary to use the rest of the functions
     myRelays.begin();
 
-    pinMode(reed, INPUT_PULLDOWN);
+    pinMode(reed, INPUT);
     
     createDefaultEvent();
     
