@@ -29,3 +29,5 @@ To program your Particle Photon/Spark Core, go to https://build.particle.io/
 * iOS Settings for My Home App
     * Toggle location debugging (ie: always send a notification when you leave/approach home)
 
+
+	
